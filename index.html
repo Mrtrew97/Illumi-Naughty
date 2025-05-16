@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Illumi-Naughty Data</title>
     <style>
         :root {
@@ -31,6 +31,7 @@
             background-image: url("https://i.imgur.com/tPCIVo0.png");
             background-size: cover;
             background-position: left 0% top 55%;
+            margin-top: 40px;
         }
 
         .search-container {
@@ -125,7 +126,7 @@
 <body>
     <div class="header-banner"></div>
     <div class="search-container">
-        <input type="text" id="search" placeholder="Search for a name..." autocomplete="off">
+        <input type="text" id="search" placeholder="Search for a name..." autocomplete="off" />
         <div id="dropdown"></div>
     </div>
     <div id="data-container"></div>
@@ -147,12 +148,13 @@
             const dropdown = document.getElementById("dropdown");
             dropdown.innerHTML = "";
             if (query.length > 0) {
-                const filteredData = sheetData.filter(p => 
-                    p["Name"].toLowerCase().includes(query) || 
-                    p["ID"] && p["ID"].toString().includes(query)
+                const filteredData = sheetData.filter(
+                    (p) =>
+                        p["Name"].toLowerCase().includes(query) ||
+                        (p["ID"] && p["ID"].toString().includes(query))
                 );
                 dropdown.style.display = filteredData.length > 0 ? "block" : "none";
-                filteredData.forEach(person => {
+                filteredData.forEach((person) => {
                     const div = document.createElement("div");
                     div.textContent = person["Name"] + " (ID: " + person["ID"] + ")";
                     div.addEventListener("click", () => {
@@ -215,10 +217,10 @@
                 boxes.slice(16, 20)
             ];
 
-            rows.forEach(rowBoxes => {
+            rows.forEach((rowBoxes) => {
                 let rowDiv = document.createElement("div");
                 rowDiv.classList.add("row");
-                rowBoxes.forEach(box => rowDiv.appendChild(box));
+                rowBoxes.forEach((box) => rowDiv.appendChild(box));
                 container.appendChild(rowDiv);
             });
         }
