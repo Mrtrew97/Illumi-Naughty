@@ -104,20 +104,6 @@
       flex-shrink: 0;
     }
 
-    .double-box {
-      width: calc(150px * 2 + var(--horizontal-gap));
-      height: 50px;
-      padding: 10px;
-      background-color: #b4b4b4;
-      border: 4px double #000;
-      outline: 3px solid #000;
-      outline-offset: 2px;
-      border-radius: 5px;
-      text-align: center;
-      flex-shrink: 0;
-      margin-right: 50px;
-    }
-
     .hidden-placeholder {
       visibility: hidden;
       width: 150px;
@@ -125,15 +111,13 @@
       flex-shrink: 0;
     }
 
-    .data-box h3,
-    .double-box h3 {
+    .data-box h3 {
       margin: 0;
       font-size: 18px;
       color: #000000;
     }
 
-    .data-box p,
-    .double-box p {
+    .data-box p {
       margin: 5px 0 0;
       font-size: 16px;
       font-weight: bold;
@@ -143,12 +127,7 @@
     .row {
       display: flex;
       justify-content: space-between;
-      flex-wrap: wrap;
-    }
-
-    .row.last-row {
-      justify-content: center;
-      gap: var(--horizontal-gap);
+      flex-wrap: nowrap;
     }
   </style>
 </head>
@@ -223,27 +202,36 @@
       ];
 
       const boxElems = fields.map(({ field, label }) => {
-      let value = person[field] || "0";
-      
-      if (field === "Merits Percentage" && value === "#DIV/0!") {
-      value = "0";
-      } else if (!isNaN(value)) {
-      value = Number(value).toFixed(2);
-      if (parseFloat(value) === parseInt(value)) {
-      value = parseInt(value).toString();
-      }
-      }
-      
-      const div = document.createElement("div");
-      div.className = "data-box";
-      div.innerHTML = `<h3>${label}</h3>
-      <p>${value}</p>`;
-      return div;
+        let value = person[field] || "0";
+        if (field === "Merits Percentage" && value === "#DIV/0!") {
+          value = "0";
+        } else if (!isNaN(value)) {
+          value = Number(value).toFixed(2);
+          if (parseFloat(value) === parseInt(value)) {
+            value = parseInt(value).toString();
+          }
+        }
+        const div = document.createElement("div");
+        div.className = "data-box";
+        div.innerHTML = `<h3>${label}</h3><p>${value}</p>`;
+        return div;
       });
+
+      const rssValueRaw = person["Rss Total Season"] || "0";
+      let rssValue = rssValueRaw;
+      if (!isNaN(rssValueRaw)) {
+        rssValue = Number(rssValueRaw).toFixed(2);
+        if (parseFloat(rssValue) === parseInt(rssValue)) {
+          rssValue = parseInt(rssValue).toString();
+        }
+      }
+      const rssBox = document.createElement("div");
+      rssBox.className = "data-box";
+      rssBox.innerHTML = `<h3>Rss Gather</h3><p>${rssValue}</p>`;
 
       const rankValue = person["Rank"] ? parseInt(person["Rank"]) : "0";
       const rankBox = document.createElement("div");
-      rankBox.className = "double-box";
+      rankBox.className = "data-box";
       rankBox.innerHTML = `<h3>Rank</h3><p>${rankValue} out of 60</p>`;
 
       const layout = [
@@ -261,13 +249,18 @@
       });
 
       const lastRow = document.createElement("div");
-      lastRow.className = "row last-row";
+      lastRow.className = "row";
 
-      const firstBoxPlaceholder = document.createElement("div");
-      firstBoxPlaceholder.className = "data-box hidden-placeholder";
+      lastRow.appendChild(rssBox);
 
-      lastRow.appendChild(firstBoxPlaceholder);
+      for (let i = 0; i < 2; i++) {
+        const placeholder = document.createElement("div");
+        placeholder.className = "hidden-placeholder";
+        lastRow.appendChild(placeholder);
+      }
+
       lastRow.appendChild(rankBox);
+
       container.appendChild(lastRow);
     }
 
