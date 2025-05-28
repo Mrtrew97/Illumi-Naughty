@@ -217,7 +217,7 @@
         return div;
       });
 
-      const rssValueRaw = person["Rss Total Season"] || "0";
+      let rssValueRaw = person["Rss Total Season"] || "0";
       let rssValue = rssValueRaw;
       if (!isNaN(rssValueRaw)) {
         rssValue = Number(rssValueRaw).toFixed(2);
@@ -229,16 +229,42 @@
       rssBox.className = "data-box";
       rssBox.innerHTML = `<h3>Rss Gather</h3><p>${rssValue}</p>`;
 
-      const rankValue = person["Rank"] ? parseInt(person["Rank"]) : "0";
+      let runicRaw = person["Runic Points Season"] || "0";
+      let runicValue = runicRaw;
+      if (!isNaN(runicRaw)) {
+        runicValue = Number(runicRaw).toFixed(2);
+        if (parseFloat(runicValue) === parseInt(runicValue)) {
+          runicValue = parseInt(runicValue).toString();
+        }
+      }
+      const runicBox = document.createElement("div");
+      runicBox.className = "data-box";
+      runicBox.innerHTML = `<h3>Runic Points</h3><p>${runicValue}</p>`;
+
+      const totalIds = sheetData.filter(p => p["ID"]).length;
+
+      const rankValue = person["Rank"] ? parseInt(person["Rank"]) : 0;
       const rankBox = document.createElement("div");
       rankBox.className = "data-box";
-      rankBox.innerHTML = `<h3>Rank</h3><p>${rankValue} out of 60</p>`;
+      rankBox.innerHTML = `<h3>Rank</h3><p>${rankValue} out of ${totalIds}</p>`;
+
+      const fromHelperRaw = person["Helper 2"] || "??";
+      const toHelperRaw = person["Helper 1"] || "??";
+
+      const fromHelper = fromHelperRaw.replace(/-2025$/, "");
+      const toHelper = toHelperRaw.replace(/-2025$/, "");
+
+      const dataPeriodVal = `From ${fromHelper} to ${toHelper}`;
+      const dataPeriodBox = document.createElement("div");
+      dataPeriodBox.className = "data-box";
+      dataPeriodBox.innerHTML = `<h3>Data Period</h3><p>${dataPeriodVal}</p>`;
 
       const layout = [
         boxElems.slice(0, 4),
         boxElems.slice(4, 8),
         boxElems.slice(8, 12),
-        boxElems.slice(12, 16)
+        boxElems.slice(12, 16),
+        [rssBox, runicBox, rankBox, dataPeriodBox]
       ];
 
       layout.forEach((row) => {
@@ -247,21 +273,6 @@
         row.forEach((box) => rowDiv.appendChild(box));
         container.appendChild(rowDiv);
       });
-
-      const lastRow = document.createElement("div");
-      lastRow.className = "row";
-
-      lastRow.appendChild(rssBox);
-
-      for (let i = 0; i < 2; i++) {
-        const placeholder = document.createElement("div");
-        placeholder.className = "hidden-placeholder";
-        lastRow.appendChild(placeholder);
-      }
-
-      lastRow.appendChild(rankBox);
-
-      container.appendChild(lastRow);
     }
 
     document.getElementById("search").addEventListener("input", searchPerson);
