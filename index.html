@@ -8,7 +8,7 @@
   <link rel="icon" href="https://i.imgur.com/hJT4Uhx.png" type="image/png" />
   <style>
     :root {
-      --horizontal-gap: 20px;
+      --horizontal-gap: 30px;
       --vertical-gap: 20px;
     }
 
@@ -82,8 +82,16 @@
       background-color: #ddd;
     }
 
-    #data-container {
+    #data-wrapper {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: flex-start;
+      gap: var(--horizontal-gap);
       margin-top: 20px;
+    }
+
+    #data-container {
       display: flex;
       flex-direction: column;
       gap: var(--vertical-gap);
@@ -91,9 +99,9 @@
       max-width: 800px;
     }
 
-    .data-box {
+    .data-box,
+    .side-box {
       width: 150px;
-      height: 50px;
       padding: 10px;
       background-color: #b4b4b4;
       border: 4px double #000;
@@ -111,13 +119,15 @@
       flex-shrink: 0;
     }
 
-    .data-box h3 {
+    .data-box h3,
+    .side-box h3 {
       margin: 0;
       font-size: 18px;
       color: #000000;
     }
 
-    .data-box p {
+    .data-box p,
+    .side-box p {
       margin: 5px 0 0;
       font-size: 16px;
       font-weight: bold;
@@ -128,6 +138,19 @@
       display: flex;
       justify-content: space-between;
       flex-wrap: nowrap;
+      gap: var(--horizontal-gap);
+    }
+
+    .side-box {
+      height: 412.5px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 5px;
+    }
+
+    .side-box-item {
+      font-size: 14px;
     }
   </style>
 </head>
@@ -138,19 +161,69 @@
     <input type="text" id="search" placeholder="Search for a name..." autocomplete="off" />
     <div id="dropdown"></div>
   </div>
-  <div id="data-container"></div>
+  <div id="data-wrapper">
+    <div id="left-box" class="side-box">
+      <h3>Top Overall AP</h3>
+    </div>
+    <div id="data-container"></div>
+    <div id="right-box" class="side-box">
+      <h3>Top AP Gain</h3>
+    </div>
+  </div>
   <script>
     let sheetData = [];
     const scriptURL = "https://script.google.com/macros/s/AKfycbxvCXxshI7Nb8k3ETICeV35DhztIb2YTh2qQF9JFrBHq_pfAnhmIihmO_-KjKUn54sl/exec";
 
     async function fetchData() {
       try {
-        let response = await fetch(scriptURL, { method: "GET", mode: "cors" });
+        let response = await fetch(scriptURL);
         sheetData = await response.json();
+        renderTopLists();
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     }
+
+    function renderTopLists() {
+      const leftBox = document.getElementById("left-box");
+      const rightBox = document.getElementById("right-box");
+
+      const topAP = [...sheetData]
+        .filter(p => !isNaN(p["AP"]))
+        .sort((a, b) => b["AP"] - a["AP"])
+        .slice(0, 10);
+
+      const topAPGain = [...sheetData]
+        .filter(p => !isNaN(p["AP Gain"]))
+        .sort((a, b) => b["AP Gain"] - a["AP Gain"])
+        .slice(0, 10);
+
+      function createDecoratedDiv(entry, index, valueField) {
+        let emojiName;
+        if (index === 0) emojiName = "🥇";
+        else if (index === 1) emojiName = "🥈";
+        else if (index === 2) emojiName = "🥉";
+        else emojiName = "🎖️";
+
+        const div = document.createElement("div");
+        div.className = "side-box-item";
+        div.innerHTML = `<strong>${emojiName}${entry["Name"]}${emojiName}</strong><br>${Number(entry[valueField]).toFixed(2)}`;
+        return div;
+      }
+
+      leftBox.innerHTML = "<h3>Top Overall AP</h3>";
+      topAP.forEach((entry, index) => {
+        leftBox.appendChild(createDecoratedDiv(entry, index, "AP"));
+      });
+
+      rightBox.innerHTML = "<h3>Top AP Gain</h3>";
+      topAPGain.forEach((entry, index) => {
+        rightBox.appendChild(createDecoratedDiv(entry, index, "AP Gain"));
+      });
+    }
+
+    document.getElementById("search").addEventListener("input", searchPerson);
+    fetchData();
 
     function searchPerson() {
       const query = document.getElementById("search").value.toLowerCase();
@@ -217,54 +290,39 @@
         return div;
       });
 
-      let rssValueRaw = person["Rss Total Season"] || "0";
-      let rssValue = rssValueRaw;
-      if (!isNaN(rssValueRaw)) {
-        rssValue = Number(rssValueRaw).toFixed(2);
+      const rssBox = document.createElement("div");
+      rssBox.className = "data-box";
+      let rssValue = person["Rss Total Season"] || "0";
+      if (!isNaN(rssValue)) {
+        rssValue = Number(rssValue).toFixed(2);
         if (parseFloat(rssValue) === parseInt(rssValue)) {
           rssValue = parseInt(rssValue).toString();
         }
       }
-      const rssBox = document.createElement("div");
-      rssBox.className = "data-box";
       rssBox.innerHTML = `<h3>Rss Gather</h3><p>${rssValue}</p>`;
 
-      let runicRaw = person["Runic Points Season"] || "0";
-      let runicValue = runicRaw;
-      if (!isNaN(runicRaw)) {
-        runicValue = Number(runicRaw).toFixed(2);
-        if (parseFloat(runicValue) === parseInt(runicValue)) {
-          runicValue = parseInt(runicValue).toString();
-        }
-      }
       const runicBox = document.createElement("div");
       runicBox.className = "data-box";
+      const runicValue = person["Runic Points Season"] || "0";
       runicBox.innerHTML = `<h3>Runic Points</h3><p>${runicValue}</p>`;
 
-      const totalIds = sheetData.filter(p => p["ID"]).length;
-
-      const rankValue = person["Rank"] ? parseInt(person["Rank"]) : 0;
       const rankBox = document.createElement("div");
       rankBox.className = "data-box";
-      rankBox.innerHTML = `<h3>Rank</h3><p>${rankValue} out of ${totalIds}</p>`;
+      const rankValue = parseInt(person["Rank"] || "0");
+      const totalIDs = sheetData.filter(p => p["ID"]).length;
+      rankBox.innerHTML = `<h3>Rank</h3><p>${rankValue} out of ${totalIDs}</p>`;
 
-      const fromHelperRaw = person["Helper 2"] || "??";
-      const toHelperRaw = person["Helper 1"] || "??";
-
-      const fromHelper = fromHelperRaw.replace(/-2025$/, "");
-      const toHelper = toHelperRaw.replace(/-2025$/, "");
-
-      const dataPeriodVal = `From ${fromHelper} to ${toHelper}`;
-      const dataPeriodBox = document.createElement("div");
-      dataPeriodBox.className = "data-box";
-      dataPeriodBox.innerHTML = `<h3>Data Period</h3><p>${dataPeriodVal}</p>`;
+      const helperBox = document.createElement("div");
+      helperBox.className = "data-box";
+      let from = (person["Helper 2"] || "").replace(/-2025$/, "");
+      let to = (person["Helper 1"] || "").replace(/-2025$/, "");
+      helperBox.innerHTML = `<h3>Data Period</h3><p>From ${from} to ${to}</p>`;
 
       const layout = [
         boxElems.slice(0, 4),
         boxElems.slice(4, 8),
         boxElems.slice(8, 12),
-        boxElems.slice(12, 16),
-        [rssBox, runicBox, rankBox, dataPeriodBox]
+        boxElems.slice(12, 16)
       ];
 
       layout.forEach((row) => {
@@ -273,10 +331,15 @@
         row.forEach((box) => rowDiv.appendChild(box));
         container.appendChild(rowDiv);
       });
-    }
 
-    document.getElementById("search").addEventListener("input", searchPerson);
-    fetchData();
+      const lastRow = document.createElement("div");
+      lastRow.className = "row";
+      lastRow.appendChild(rssBox);
+      lastRow.appendChild(runicBox);
+      lastRow.appendChild(rankBox);
+      lastRow.appendChild(helperBox);
+      container.appendChild(lastRow);
+    }
   </script>
 </body>
 
