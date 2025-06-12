@@ -251,6 +251,15 @@
       }
     }
 
+    // Helper function to format numbers with commas and no decimals (like merits)
+    function formatNumber(value) {
+      if (!value || value === "#DIV/0!") return "0";
+      // Remove commas for safe parsing
+      let num = Number(value.toString().replace(/,/g, ''));
+      if (isNaN(num)) return value; // if cannot parse, just return raw value
+      return num.toLocaleString("en-US", { maximumFractionDigits: 0 });
+    }
+
     function displayData(person) {
       let container = document.getElementById("data-container");
       container.innerHTML = "";
@@ -318,6 +327,7 @@
       let to = (person["Helper 1"] || "").replace(/-2025$/, "");
       helperBox.innerHTML = `<h3>Data Period</h3><p>From ${from} to ${to}</p>`;
 
+      // Layout rows 1 to 4
       const layout = [
         boxElems.slice(0, 4),
         boxElems.slice(4, 8),
@@ -332,13 +342,44 @@
         container.appendChild(rowDiv);
       });
 
-      const lastRow = document.createElement("div");
-      lastRow.className = "row";
-      lastRow.appendChild(rssBox);
-      lastRow.appendChild(runicBox);
-      lastRow.appendChild(rankBox);
-      lastRow.appendChild(helperBox);
-      container.appendChild(lastRow);
+      // 5th row (rss, runic, rank, helper)
+      const fifthRow = document.createElement("div");
+      fifthRow.className = "row";
+      fifthRow.appendChild(rssBox);
+      fifthRow.appendChild(runicBox);
+      fifthRow.appendChild(rankBox);
+      fifthRow.appendChild(helperBox);
+      container.appendChild(fifthRow);
+
+      // 6th row with invisible middle boxes
+      const sixthRow = document.createElement("div");
+      sixthRow.className = "row";
+
+      // T5 K Count box - formatted value from AP
+      const t5Box = document.createElement("div");
+      t5Box.className = "data-box";
+      let t5RawValue = person["T5 K Count"] || "0";
+      t5Box.innerHTML = `<h3>T5 K Count</h3><p>${formatNumber(t5RawValue)}</p>`;
+
+      // Two invisible placeholders
+      const invisibleBox1 = document.createElement("div");
+      invisibleBox1.className = "hidden-placeholder";
+
+      const invisibleBox2 = document.createElement("div");
+      invisibleBox2.className = "hidden-placeholder";
+
+      // T4 K Count box - formatted value from AQ
+      const t4Box = document.createElement("div");
+      t4Box.className = "data-box";
+      let t4RawValue = person["T4 K Count"] || "0";
+      t4Box.innerHTML = `<h3>T4 K Count</h3><p>${formatNumber(t4RawValue)}</p>`;
+
+      sixthRow.appendChild(t5Box);
+      sixthRow.appendChild(invisibleBox1);
+      sixthRow.appendChild(invisibleBox2);
+      sixthRow.appendChild(t4Box);
+
+      container.appendChild(sixthRow);
     }
   </script>
 </body>
